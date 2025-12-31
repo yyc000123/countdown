@@ -1,1 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>倒數煙火</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    flex-direction: column;
+  }
+  #countdown {
+    font-size: 5em;
+    margin-bottom: 20px;
+  }
+  canvas {
+    display: none;
+  }
+</style>
+</head>
+<body>
 
+<div id="countdown">10</div>
+<canvas id="fireworks"></canvas>
+
+<script>
+// 倒數
+let countdown = 10;
+const countdownEl = document.getElementById("countdown");
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+function updateCountdown() {
+    if(countdown > 0){
+        countdownEl.textContent = countdown;
+        countdown--;
+        setTimeout(updateCountdown, 1000);
+    } else {
+        countdownEl.style.display = "none";
+        canvas.style.display = "block";
+        startFireworks();
+    }
+}
+
+// 簡單煙火效果
+function startFireworks() {
+    const particles = [];
+    function random(min,max){return Math.random()*(max-min)+min;}
+    
+    class Particle {
+        constructor(x,y){
+            this.x = x;
+            this.y = y;
+            this.vx = random(-3,3);
+            this.vy = random(-7,-3);
+            this.alpha = 1;
+            this.color = `hsl(${random(0,360)},100%,50%)`;
+        }
+        update(){
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += 0.1; // gravity
+            this.alpha -= 0.02;
+        }
+        draw(){
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x,this.y,3,0,Math.PI*2);
+            ctx.fill();
+        }
+    }
+
+    function explode(x,y){
+        for(let i=0;i<100;i++){
+            particles.push(new Particle(x,y));
+        }
+    }
+
+    function loop(){
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        particles.forEach((p,i)=>{
+            p.update();
+            p.draw();
+            if(p.alpha <=0) particles.splice(i,1);
+        });
+        requestAnimationFrame(loop);
+    }
+
+    // 每隔一段時間放煙火
+    setInterval(()=>{
+        explode(random(100,canvas.width-100), random(100,canvas.height/2));
+    }, 500);
+
+    loop();
+}
+
+updateCountdown();
+</script>
+
+</body>
+</html>
